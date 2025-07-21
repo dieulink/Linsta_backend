@@ -94,10 +94,22 @@ public class UserServiceImpl implements UserService {
         return new UserLoginResponse("Đăng nhập thành công", token);
     }
 
+    @Autowired
+    private RedisService redisService;
+
     @Override
     public UserLoginResponse resetPassword(ResetPasswordRequest request){
         Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+        // nếu đúng là otp của email đó thì cho đổi pass, sau đó trả về response với token bằng null
 
+        User user = userOptional.get();
+        if (request.getOtp().equals(redisService.getOTP(request.getEmail()))) {
+            user.setPassword(new BCryptPasswordEncoder().encode(request.getPassword()));
+            User savedUser = userRepository.save(user);
+            redisService.deleteOTP(request.getEmail());
+            return new UserLoginResponse("Đổi mật khẩu thành công", "");
+        }
+        return new UserLoginResponse("Đổi mật khẩu thất bại", "");
     }
 
 }

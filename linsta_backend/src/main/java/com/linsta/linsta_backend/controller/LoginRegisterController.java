@@ -3,6 +3,7 @@ package com.linsta.linsta_backend.controller;
 import com.linsta.linsta_backend.model.User;
 import com.linsta.linsta_backend.repository.UserRepository;
 import com.linsta.linsta_backend.request.OtpRequest;
+import com.linsta.linsta_backend.request.ResetPasswordRequest;
 import com.linsta.linsta_backend.request.UserLoginRequest;
 import com.linsta.linsta_backend.request.UserRegisterRequest;
 import com.linsta.linsta_backend.response.UserRegisterResponse;
@@ -60,5 +61,10 @@ public class LoginRegisterController {
         Random random = new Random();
         int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
+    }
+
+    @PostMapping("/reset_password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(userService.resetPassword(request));
     }
 }
