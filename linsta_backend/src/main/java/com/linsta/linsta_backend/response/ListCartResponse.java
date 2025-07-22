@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class listCartResponse {
+public class ListCartResponse {
     private List<CartItem> cartItems;
     private Long total;
 }
