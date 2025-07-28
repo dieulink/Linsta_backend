@@ -46,6 +46,23 @@ public class HomeController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/categories")
+    public ResponseEntity<Map<String, Object>> getCategoriesProduct(
+            @RequestParam(defaultValue = "1") int id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productService.getProductsByCategory(id, page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("products", productPage.getContent());
+        response.put("currentPage", productPage.getNumber());
+        response.put("totalItems", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
     @GetMapping("/item_product/{id}")
     public ResponseEntity<?> getProductById (
             @PathVariable Long id
@@ -58,6 +75,7 @@ public class HomeController {
         }
     }
 
+
     @Autowired
     private CategoryService categoryService;
 
@@ -65,5 +83,38 @@ public class HomeController {
     public ResponseEntity<List<Category>> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/products/brand")
+    public ResponseEntity<Map<String, Object>> searchProductsByDescription(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Product> productPage = productService.searchProductsByDescription(keyword, page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("products", productPage.getContent());
+        response.put("currentPage", productPage.getNumber());
+        response.put("totalItems", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @GetMapping("/products/search")
+    public ResponseEntity<Map<String, Object>> searchProductsByName(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Product> productPage = productService.searchProductsByDescription(keyword, page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("products", productPage.getContent());
+        response.put("currentPage", productPage.getNumber());
+        response.put("totalItems", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

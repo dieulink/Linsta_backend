@@ -4,6 +4,7 @@ import com.linsta.linsta_backend.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -21,4 +22,19 @@ public class ProductService {
     public Optional<Product> getProductById(Long id) {
         return productRepository.findById(id);
     }
+
+    public Page<Product> getProductsByCategory(int categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findByCategoryId(categoryId, pageable);
+    }
+    public Page<Product> searchProductsByDescription(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findByDescriptionContainingIgnoreCase(keyword, pageable);
+    }
+
+    public Page<Product> searchProductsByName(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
+    }
+
 }
