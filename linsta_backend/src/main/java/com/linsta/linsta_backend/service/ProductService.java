@@ -36,5 +36,9 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size);
         return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
     }
-
+    public Page<Product> searchProductsByNameandCategoryId(String keyword, int page, int id) {
+        int size = 20;
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findByCategoryIdAndNameContainingIgnoreCase(id,keyword, pageable);
+    }
 }

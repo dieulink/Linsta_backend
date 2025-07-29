@@ -117,4 +117,20 @@ public class HomeController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @GetMapping("/products/searchinCate")
+    public ResponseEntity<Map<String, Object>> searchProductsInCate(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0") int id) {
+
+        Page<Product> productPage = productService.searchProductsByNameandCategoryId(keyword, page, id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("products", productPage.getContent());
+        response.put("currentPage", productPage.getNumber());
+        response.put("totalItems", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
