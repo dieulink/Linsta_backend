@@ -35,16 +35,19 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Override
     public UserRegisterResponse register(UserRegisterRequest request) {
-        System.out.println("EMAIL: " + request.getEmail());
-        System.out.println("PHONE: " + request.getPhone());
+//        System.out.println("EMAIL: " + request.getEmail());
+//        System.out.println("PHONE: " + request.getPhone());
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return new UserRegisterResponse("Email đã tồn tại", "");
+            return new UserRegisterResponse("Email đã tồn tại", null);
         }
         if (userRepository.findByPhone(request.getPhone()).isPresent()) {
-            return new UserRegisterResponse("Số điện thoại đã tồn tại", "");
+            return new UserRegisterResponse("Số điện thoại đã tồn tại", null);
         }
 
         UserAddress address = addressRepository
@@ -59,15 +62,24 @@ public class UserServiceImpl implements UserService {
         user.setAddress(address);
         user.setCreatedAt(LocalDateTime.now());
 
-        user.setRole(new Role(1L, null));
 
-        User savedUser = userRepository.save(user);
+        Role role = roleRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy role"));
+        user.setRole(role);
+
+        System.out.println("roleeeeeeeeeeeeeeeeeee " + role.getName());
+        userRepository.save(user);
+
+        Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
+
+        User savedUser = userOptional.get();
 
         String token = jwtTokenUtil.generateToken(
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getRole().getName()
+                role.getName(),
+                savedUser.getAddress().getAddress()
         );
 
         return new UserRegisterResponse("Đăng ký thành công", token);
@@ -80,16 +92,16 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
 
         if (userOptional.isEmpty()) {
-            return new UserLoginResponse("Email chưa đăng kí", "");
+            return new UserLoginResponse("Email chưa đăng kí", null);
         }
 
         User user = userOptional.get();
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return new UserLoginResponse("Sai mật khẩu", "");
+            return new UserLoginResponse("Sai mật khẩu", null);
         }
 
-        String token = jwtTokenUtil.generateToken(user.getId(), user.getRole().getName(), user.getEmail(), user.getName());
+        String token = jwtTokenUtil.generateToken(user.getId(), user.getName(), user.getEmail(), user.getRole().getName(), user.getAddress().getAddress());
 
         return new UserLoginResponse("Đăng nhập thành công", token);
     }
@@ -107,9 +119,20 @@ public class UserServiceImpl implements UserService {
             user.setPassword(new BCryptPasswordEncoder().encode(request.getPassword()));
             User savedUser = userRepository.save(user);
             redisService.deleteOTP(request.getEmail());
-            return new UserLoginResponse("Đổi mật khẩu thành công", "");
+            Role role = roleRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy role"));
+            String token = jwtTokenUtil.generateToken(
+                    savedUser.getId(),
+                    savedUser.getName(),
+                    savedUser.getEmail(),
+                    role.getName(),
+                    savedUser.getAddress().getAddress()
+            );
+
+
+            return new UserLoginResponse("Đổi mật khẩu thành công", token);
         }
-        return new UserLoginResponse("Đổi mật khẩu thất bại", "");
+        return new UserLoginResponse("Đổi mật khẩu thất bại", null);
     }
 
 }

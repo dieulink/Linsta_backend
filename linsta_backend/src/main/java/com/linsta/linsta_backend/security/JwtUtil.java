@@ -14,12 +14,13 @@ public class JwtUtil {
     private final String SECRET_KEY = "linsta_secret";
 //    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 giờ
 
-    public String generateToken(Long id, String name, String email, String role) {
+    public String generateToken(Long id, String name, String email, String role, String address) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", id);
         claims.put("name", name);
         claims.put("email", email);
         claims.put("role", role);
+        claims.put("address", address);
 
         return Jwts.builder()
                 .setClaims(claims)

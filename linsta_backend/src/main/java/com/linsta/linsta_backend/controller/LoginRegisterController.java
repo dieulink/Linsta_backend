@@ -46,7 +46,7 @@ public class LoginRegisterController {
     public ResponseEntity<?> sendOtp(@RequestBody OtpRequest request) {
 
         if (!userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return ResponseEntity.ok("Email chưa đăng kí");
+            return ResponseEntity.ok(null);
         }
 
         String otp = generateOTP();
