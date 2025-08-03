@@ -1,5 +1,6 @@
 package com.linsta.linsta_backend.service;
 
+import com.linsta.linsta_backend.request.EditNameRequest;
 import com.linsta.linsta_backend.request.ResetPasswordRequest;
 import com.linsta.linsta_backend.request.UserLoginRequest;
 import com.linsta.linsta_backend.request.UserRegisterRequest;
@@ -79,7 +80,9 @@ public class UserServiceImpl implements UserService {
                 savedUser.getName(),
                 savedUser.getEmail(),
                 role.getName(),
-                savedUser.getAddress().getAddress()
+                savedUser.getAddress().getAddress(),
+                savedUser.getPhone()
+
         );
 
         return new UserRegisterResponse("Đăng ký thành công", token);
@@ -101,7 +104,7 @@ public class UserServiceImpl implements UserService {
             return new UserLoginResponse("Sai mật khẩu", null);
         }
 
-        String token = jwtTokenUtil.generateToken(user.getId(), user.getName(), user.getEmail(), user.getRole().getName(), user.getAddress().getAddress());
+        String token = jwtTokenUtil.generateToken(user.getId(), user.getName(), user.getEmail(), user.getRole().getName(), user.getAddress().getAddress(),                user.getPhone());
 
         return new UserLoginResponse("Đăng nhập thành công", token);
     }
@@ -126,13 +129,38 @@ public class UserServiceImpl implements UserService {
                     savedUser.getName(),
                     savedUser.getEmail(),
                     role.getName(),
-                    savedUser.getAddress().getAddress()
+                    savedUser.getAddress().getAddress(),
+                    savedUser.getPhone()
             );
 
 
             return new UserLoginResponse("Đổi mật khẩu thành công", token);
         }
         return new UserLoginResponse("Đổi mật khẩu thất bại", null);
+    }
+
+    public UserLoginResponse editName(EditNameRequest request) {
+        Optional<User> userOptional = userRepository.findById(request.getId());
+        User user = userOptional.get();
+        if (user == null) {
+            return new UserLoginResponse("Người dùng không tồn tại", null);
+        }
+
+        user.setName(request.getNewName());
+        userRepository.save(user);
+
+        Role role = roleRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy role"));
+        String token = jwtTokenUtil.generateToken(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                role.getName(),
+                user.getAddress().getAddress(),
+                user.getPhone()
+        );
+
+        return new UserLoginResponse("Đổi tên thành công", token);
     }
 
 }
