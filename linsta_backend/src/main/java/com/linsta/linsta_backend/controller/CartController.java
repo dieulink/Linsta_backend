@@ -28,4 +28,27 @@ public class CartController {
         return cartService.getListCart(userid);
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<ListCartResponse> deleteFromCart(
+            @RequestParam Long productId,
+            @RequestParam Long userId) {
+        ListCartResponse response = cartService.deleteFromCart(productId, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/increase")
+    public ResponseEntity<CartItem> increaseQuantity(
+            @RequestParam Long userId,
+            @RequestParam Long productId) {
+        CartItem updated = cartService.increaseQuantity(userId, productId);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/decrease")
+    public ResponseEntity<Void> decreaseQuantity(
+            @RequestParam Long userId,
+            @RequestParam Long productId) {
+        cartService.decreaseQuantity(userId, productId);
+        return ResponseEntity.ok().build();
+    }
 }

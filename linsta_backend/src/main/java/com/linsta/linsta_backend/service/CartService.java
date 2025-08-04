@@ -1,6 +1,7 @@
 package com.linsta.linsta_backend.service;
 
 import com.linsta.linsta_backend.model.CartItem;
+import com.linsta.linsta_backend.model.Product;
 import com.linsta.linsta_backend.repository.CartRepository;
 import com.linsta.linsta_backend.repository.ProductRepository;
 import com.linsta.linsta_backend.repository.UserRepository;
@@ -55,7 +56,38 @@ public class CartService {
         return listCartResponse;
     }
 
-//    public ListCartResponse deleteFromCart(Long productId, Long userId) {
-//
-//    }
+    public ListCartResponse deleteFromCart(Long productId, Long userId) {
+        Optional<CartItem> optionalCartItem = cartRepository.findByUserIdAndProductId(userId, productId);
+        cartRepository.delete(optionalCartItem.get());
+        ListCartResponse listCartResponse = new ListCartResponse();
+        listCartResponse.setTotal(cartRepository.getTotalProductQuantityByUserId(userId));
+        listCartResponse.setCartItems(cartRepository.findAllByUserId(userId));
+        return listCartResponse;
+    }
+    public CartItem increaseQuantity(Long userId, Long productId) {
+        CartItem cartItem = cartRepository.findByUserIdAndProductId(userId, productId)
+                .orElseThrow(() -> new RuntimeException("khong tim thay"));
+Optional<Product> product = productRepository.findById(productId);
+if (product.get().getStock() == cartItem.getQuantity())
+{return cartRepository.save(cartItem);
 }
+        cartItem.setQuantity(cartItem.getQuantity() + 1);
+        return cartRepository.save(cartItem);
+
+    }
+
+    public void decreaseQuantity(Long userId, Long productId) {
+        CartItem cartItem = cartRepository.findByUserIdAndProductId(userId, productId)
+                .orElseThrow(() -> new RuntimeException("khon tim thay"));
+
+        int currentQty = cartItem.getQuantity();
+        if (currentQty <= 1) {
+            cartRepository.delete(cartItem);
+        } else {
+            cartItem.setQuantity(currentQty - 1);
+            cartRepository.save(cartItem);
+        }
+    }
+}
+
+
