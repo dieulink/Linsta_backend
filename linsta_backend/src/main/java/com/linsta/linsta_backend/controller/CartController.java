@@ -37,18 +37,18 @@ public class CartController {
     }
 
     @PostMapping("/increase")
-    public ResponseEntity<CartItem> increaseQuantity(
+    public ResponseEntity<ListCartResponse> increaseQuantity(
             @RequestParam Long userId,
             @RequestParam Long productId) {
-        CartItem updated = cartService.increaseQuantity(userId, productId);
-        return ResponseEntity.ok(updated);
+        ListCartResponse response = cartService.increaseQuantity(userId, productId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/decrease")
-    public ResponseEntity<Void> decreaseQuantity(
+    public ResponseEntity<ListCartResponse> decreaseQuantity(
             @RequestParam Long userId,
             @RequestParam Long productId) {
-        cartService.decreaseQuantity(userId, productId);
-        return ResponseEntity.ok().build();
+        ListCartResponse response = cartService.decreaseQuantity(userId, productId);
+        return ResponseEntity.ok(response);
     }
 }

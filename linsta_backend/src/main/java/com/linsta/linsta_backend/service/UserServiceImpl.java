@@ -1,9 +1,6 @@
 package com.linsta.linsta_backend.service;
 
-import com.linsta.linsta_backend.request.EditNameRequest;
-import com.linsta.linsta_backend.request.ResetPasswordRequest;
-import com.linsta.linsta_backend.request.UserLoginRequest;
-import com.linsta.linsta_backend.request.UserRegisterRequest;
+import com.linsta.linsta_backend.request.*;
 import com.linsta.linsta_backend.model.*;
 import com.linsta.linsta_backend.repository.*;
 import com.linsta.linsta_backend.response.UserLoginResponse;
@@ -161,6 +158,35 @@ public class UserServiceImpl implements UserService {
         );
 
         return new UserLoginResponse("Đổi tên thành công", token);
+    }
+    public UserLoginResponse editAddress(EditAddressRequest request) {
+        Optional<User> userOptional = userRepository.findById(request.getId());
+        if (userOptional.isEmpty()) {
+            return new UserLoginResponse("Người dùng không tồn tại", null);
+        }
+
+        User user = userOptional.get();
+
+        UserAddress address = addressRepository
+                .findByAddress(request.getNewAddress())
+                .orElseGet(() -> addressRepository.save(new UserAddress(null, request.getNewAddress())));
+
+        user.setAddress(address);
+        userRepository.save(user);
+
+        Role role = roleRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy role"));
+
+        String token = jwtTokenUtil.generateToken(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                role.getName(),
+                user.getAddress().getAddress(),
+                user.getPhone()
+        );
+
+        return new UserLoginResponse("Cập nhật địa chỉ thành công", token);
     }
 
 }

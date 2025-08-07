@@ -26,6 +26,21 @@ public class Order {
     @Column(name = "total_price",nullable = false)
     private Long totalPrice;
 
+    @Column(name = "receive_address",nullable = false)
+    private String receiveAddress;
+
+    @Column(name = "receive_name",nullable = false)
+    private String receiveName;
+
+    @Column(name = "receive_phone",nullable = false)
+    private String receivePhone;
+
+    @Column(name = "ship_cost",nullable = false)
+    private int shipCost;
+
+    @Column(name = "status" ,nullable = false)
+    private String status;
+
     @ManyToOne
     @JoinColumn(name = "pay_method_id")
     private PaymentMethod paymentMethod;

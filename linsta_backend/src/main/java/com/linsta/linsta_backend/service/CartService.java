@@ -64,28 +64,43 @@ public class CartService {
         listCartResponse.setCartItems(cartRepository.findAllByUserId(userId));
         return listCartResponse;
     }
-    public CartItem increaseQuantity(Long userId, Long productId) {
+    public ListCartResponse increaseQuantity(Long userId, Long productId) {
         CartItem cartItem = cartRepository.findByUserIdAndProductId(userId, productId)
                 .orElseThrow(() -> new RuntimeException("khong tim thay"));
-Optional<Product> product = productRepository.findById(productId);
-if (product.get().getStock() == cartItem.getQuantity())
-{return cartRepository.save(cartItem);
+        Optional<Product> product = productRepository.findById(productId);
+        if (product.get().getStock() == cartItem.getQuantity())
+        {        ListCartResponse listCartResponse = new ListCartResponse();
+            listCartResponse.setTotal(cartRepository.getTotalProductQuantityByUserId(userId));
+            listCartResponse.setCartItems(cartRepository.findAllByUserId(userId));
+            return listCartResponse;
 }
         cartItem.setQuantity(cartItem.getQuantity() + 1);
-        return cartRepository.save(cartItem);
+        cartRepository.save(cartItem);
+        ListCartResponse listCartResponse = new ListCartResponse();
+        listCartResponse.setTotal(cartRepository.getTotalProductQuantityByUserId(userId));
+        listCartResponse.setCartItems(cartRepository.findAllByUserId(userId));
+        return listCartResponse;
 
     }
 
-    public void decreaseQuantity(Long userId, Long productId) {
+    public ListCartResponse decreaseQuantity(Long userId, Long productId) {
         CartItem cartItem = cartRepository.findByUserIdAndProductId(userId, productId)
                 .orElseThrow(() -> new RuntimeException("khon tim thay"));
 
         int currentQty = cartItem.getQuantity();
         if (currentQty <= 1) {
             cartRepository.delete(cartItem);
+            ListCartResponse listCartResponse = new ListCartResponse();
+            listCartResponse.setTotal(cartRepository.getTotalProductQuantityByUserId(userId));
+            listCartResponse.setCartItems(cartRepository.findAllByUserId(userId));
+            return listCartResponse;
         } else {
             cartItem.setQuantity(currentQty - 1);
             cartRepository.save(cartItem);
+            ListCartResponse listCartResponse = new ListCartResponse();
+            listCartResponse.setTotal(cartRepository.getTotalProductQuantityByUserId(userId));
+            listCartResponse.setCartItems(cartRepository.findAllByUserId(userId));
+            return listCartResponse;
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.linsta.linsta_backend.controller;
 
+import com.linsta.linsta_backend.request.EditAddressRequest;
 import com.linsta.linsta_backend.request.EditNameRequest;
+import com.linsta.linsta_backend.response.UserLoginResponse;
 import com.linsta.linsta_backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,4 +20,9 @@ public class UserController {
     public ResponseEntity<?> editName(@RequestBody EditNameRequest request) {
         return ResponseEntity.ok(userService.editName(request));
     }
+    @PostMapping("/edit_address")
+    public ResponseEntity<UserLoginResponse> editAddress(@RequestBody EditAddressRequest request) {
+        return ResponseEntity.ok(userService.editAddress(request));
+    }
+
 }

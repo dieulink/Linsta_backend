@@ -25,5 +25,5 @@ public class OrderDetail {
     private int productPrice;
 
     @Column(nullable = false)
-    private int quantity;
+    private int quantity; //của product
 }
