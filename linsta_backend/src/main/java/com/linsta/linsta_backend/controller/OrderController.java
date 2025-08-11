@@ -33,4 +33,9 @@ public class OrderController {
         List<OrderResponse> orders = orderService.getOrdersByUserId(userId);
         return ResponseEntity.ok(orders);
     }
+    @GetMapping("/order_detail")
+    public ResponseEntity<?> getOrdersByOrderId(@RequestParam("orderId") Long orderId) {
+        OrderResponse order = orderService.getOrdersByOrderId(orderId);
+        return ResponseEntity.ok(order);
+    }
 }

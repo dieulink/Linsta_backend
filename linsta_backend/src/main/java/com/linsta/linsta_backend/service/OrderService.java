@@ -4,15 +4,16 @@ import com.linsta.linsta_backend.model.*;
 import com.linsta.linsta_backend.repository.*;
 import com.linsta.linsta_backend.request.OrderDetailRequest;
 import com.linsta.linsta_backend.request.OrderRequest;
+import com.linsta.linsta_backend.response.DailyRevenueDTO;
 import com.linsta.linsta_backend.response.OrderDetailResponse;
 import com.linsta.linsta_backend.response.OrderResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,12 +95,16 @@ public class OrderService {
             List<OrderDetailResponse> detailResponses = details.stream()
                     .map(detail -> new OrderDetailResponse(
                             detail.getProduct().getId(),
+                            detail.getProduct().getImageUrl(),
+                            detail.getProduct().getName(),
                             detail.getProductPrice(),
                             detail.getQuantity()
+
                     ))
                     .toList();
 
             OrderResponse response = new OrderResponse();
+            response.setOrderId(order.getId());
             response.setUserId(order.getUser().getId());
             response.setQuantity(order.getQuantity());
             response.setTotalPrice(order.getTotalPrice());
@@ -117,4 +122,143 @@ public class OrderService {
         return responseList;
     }
 
+    public OrderResponse getOrdersByOrderId(Long orderId) {
+        Optional<Order> order = orderRepository.findById(orderId);
+
+            List<OrderDetail> details = orderDetailRepository.findByOrder(order.get());
+
+            List<OrderDetailResponse> detailResponses = details.stream()
+                    .map(detail -> new OrderDetailResponse(
+                            detail.getProduct().getId(),
+                            detail.getProduct().getImageUrl(),
+                            detail.getProduct().getName(),
+                            detail.getProductPrice(),
+                            detail.getQuantity()
+
+                    ))
+                    .toList();
+
+            OrderResponse response = new OrderResponse();
+            response.setOrderId(order.get().getId());
+            response.setUserId(order.get().getUser().getId());
+            response.setQuantity(order.get().getQuantity());
+            response.setTotalPrice(order.get().getTotalPrice());
+            response.setReceiveAddress(order.get().getReceiveAddress());
+            response.setReceiveName(order.get().getReceiveName());
+            response.setReceivePhone(order.get().getReceivePhone());
+            response.setShipCost(order.get().getShipCost());
+            response.setPayMethodId(order.get().getPaymentMethod().getId());
+            response.setItems(detailResponses);
+            response.setStatus(order.get().getStatus());
+
+
+        return response;
+    }
+
+    public Map<String, Object> getOrderGrowthThisMonth() {
+        LocalDate now = LocalDate.now();
+        int currentMonth = now.getMonthValue();
+        int currentYear = now.getYear();
+
+        // Tháng trước
+        LocalDate lastMonthDate = now.minusMonths(1);
+        int lastMonth = lastMonthDate.getMonthValue();
+        int lastMonthYear = lastMonthDate.getYear();
+
+        long thisMonthCount = orderRepository.countOrdersByMonthAndYear(currentMonth, currentYear);
+        long lastMonthCount = orderRepository.countOrdersByMonthAndYear(lastMonth, lastMonthYear);
+
+        long difference = thisMonthCount - lastMonthCount;
+        double growthRate = lastMonthCount == 0 ? 100.0 : ((double) difference / lastMonthCount) * 100;
+        growthRate = Math.round(growthRate * 10.0) / 10.0;
+        String growth = "" + growthRate;
+        if (growthRate >0) {
+            growth = "+"+ growthRate;
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("orderThisMonth", thisMonthCount);
+        result.put("orderGrowthRate", growth);
+
+        long thisMonthQuantity = orderRepository.sumQuantityByMonthAndYear(currentMonth, currentYear);
+        long lastMonthQuantity = orderRepository.sumQuantityByMonthAndYear(lastMonth, lastMonthYear);
+
+        long thisMonthTotalPrice = orderRepository.sumTotalPriceByMonthAndYear(currentMonth, currentYear);
+        long lastMonthTotalPrice = orderRepository.sumTotalPriceByMonthAndYear(lastMonth, lastMonthYear);
+
+        double quantityGrowth = lastMonthQuantity == 0 ? 100.0 :
+                ((double) (thisMonthQuantity - lastMonthQuantity) / lastMonthQuantity) * 100;
+        quantityGrowth = Math.round(quantityGrowth * 10.0) / 10.0;
+        String growthQuantity = "" + quantityGrowth;
+        if (quantityGrowth >0) {
+            growthQuantity = "+"+ quantityGrowth;
+        }
+        double priceGrowth = lastMonthTotalPrice == 0 ? 100.0 :
+                ((double) (thisMonthTotalPrice - lastMonthTotalPrice) / lastMonthTotalPrice) * 100;
+        priceGrowth = Math.round(priceGrowth * 10.0) / 10.0;
+        String growthPrice = "" + priceGrowth;
+        if (priceGrowth >0) {
+            growthPrice = "+"+ priceGrowth;
+        }
+        result.put("thisMonthQuantity", thisMonthQuantity);
+        result.put("quantityGrowth", growthQuantity);
+
+        result.put("thisMonthTotalPrice", thisMonthTotalPrice);
+        result.put("priceGrowth", growthPrice);
+        return result;
+    }
+
+    public List<DailyRevenueDTO> get7DayRevenue() {
+        LocalDate startDate = LocalDate.now().minusDays(6);
+        List<Object[]> results = orderRepository.findDailyRevenueSinceNative(startDate);
+
+        Map<LocalDate, Long> revenueMap = results.stream()
+                .collect(Collectors.toMap(
+                        obj -> ((java.sql.Date) obj[0]).toLocalDate(),
+                        obj -> ((Number) obj[1]).longValue()
+                ));
+
+        List<DailyRevenueDTO> list = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = startDate.plusDays(i);
+            Long revenue = revenueMap.getOrDefault(date, 0L);
+            list.add(new DailyRevenueDTO(date, revenue));
+        }
+        return list;
+    }
+    public List<OrderResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+
+        List<OrderResponse> responseList = new ArrayList<>();
+
+        for (Order order : orders) {
+            List<OrderDetail> details = orderDetailRepository.findByOrder(order);
+
+            List<OrderDetailResponse> items = details.stream()
+                    .map(d -> new OrderDetailResponse(
+                            d.getProduct().getId(),
+                            d.getProduct().getImageUrl(), // giả sử product có trường imageUrl
+                            d.getProduct().getName(),
+                            d.getProductPrice(),
+                            d.getQuantity()
+                    ))
+                    .collect(Collectors.toList());
+
+            OrderResponse orderResponse = new OrderResponse(
+                    order.getId(),
+                    order.getUser().getId(),
+                    order.getQuantity(),
+                    order.getTotalPrice(),
+                    order.getReceiveAddress(),
+                    order.getReceiveName(),
+                    order.getReceivePhone(),
+                    order.getShipCost(),
+                    order.getStatus(),
+                    order.getPaymentMethod() != null ? order.getPaymentMethod().getId() : null,
+                    items
+            );
+
+            responseList.add(orderResponse);
+        }
+        return responseList;
+    }
 }

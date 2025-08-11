@@ -5,11 +5,13 @@ import com.linsta.linsta_backend.model.User;
 import com.linsta.linsta_backend.response.UserLoginResponse;
 import com.linsta.linsta_backend.response.UserRegisterResponse;
 
+import java.util.Map;
+
 public interface UserService {
     UserRegisterResponse register(UserRegisterRequest request);
     UserLoginResponse login(UserLoginRequest request);
     UserLoginResponse resetPassword(ResetPasswordRequest request);
     UserLoginResponse editName(EditNameRequest request);
     UserLoginResponse editAddress(EditAddressRequest request);
-
+    Map<String,Object> getUserGrowthThisMonth();
 }

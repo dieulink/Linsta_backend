@@ -15,7 +15,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -188,6 +191,31 @@ public class UserServiceImpl implements UserService {
 
         return new UserLoginResponse("Cập nhật địa chỉ thành công", token);
     }
+    public Map<String, Object> getUserGrowthThisMonth() {
+        LocalDate now = LocalDate.now();
+        int currentMonth = now.getMonthValue();
+        int currentYear = now.getYear();
 
+        // Tháng trước
+        LocalDate lastMonthDate = now.minusMonths(1);
+        int lastMonth = lastMonthDate.getMonthValue();
+        int lastMonthYear = lastMonthDate.getYear();
+
+        long thisMonthCount = userRepository.countUsersByMonthAndYear(currentMonth, currentYear);
+        long lastMonthCount =userRepository.countUsersByMonthAndYear(lastMonth, lastMonthYear);
+
+        long difference = thisMonthCount - lastMonthCount;
+        double growthRate = lastMonthCount == 0 ? 100.0 : ((double) difference / lastMonthCount) * 100;
+        growthRate = Math.round(growthRate * 10.0) / 10.0;
+        String growth = "" + growthRate;
+        if (difference >0) {
+            growth = "+"+ growthRate;
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("userThisMonth", thisMonthCount);
+        result.put("userGrowthRate", growth);
+
+        return result;
+    }
 }
 

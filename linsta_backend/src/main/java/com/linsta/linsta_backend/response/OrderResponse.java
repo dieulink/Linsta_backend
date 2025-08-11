@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponse {
+    private Long orderId;
     private Long userId;
     private int quantity;
     private Long totalPrice;
