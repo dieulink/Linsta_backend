@@ -4,14 +4,15 @@ import com.linsta.linsta_backend.model.*;
 import com.linsta.linsta_backend.repository.*;
 import com.linsta.linsta_backend.request.OrderDetailRequest;
 import com.linsta.linsta_backend.request.OrderRequest;
-import com.linsta.linsta_backend.response.DailyRevenueDTO;
-import com.linsta.linsta_backend.response.OrderDetailResponse;
-import com.linsta.linsta_backend.response.OrderResponse;
+import com.linsta.linsta_backend.request.RevenueByMonth;
+import com.linsta.linsta_backend.response.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -115,6 +116,8 @@ public class OrderService {
             response.setPayMethodId(order.getPaymentMethod().getId());
             response.setItems(detailResponses);
             response.setStatus(order.getStatus());
+            response.setCreatedAt(order.getCreatedAt());
+            response.setDoneAt(order.getDoneAt());
 
             responseList.add(response);
         }
@@ -150,6 +153,8 @@ public class OrderService {
             response.setPayMethodId(order.get().getPaymentMethod().getId());
             response.setItems(detailResponses);
             response.setStatus(order.get().getStatus());
+            response.setCreatedAt(order.get().getCreatedAt());
+            response.setDoneAt(order.get().getDoneAt());
 
 
         return response;
@@ -225,6 +230,7 @@ public class OrderService {
         }
         return list;
     }
+
     public List<OrderResponse> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
 
@@ -236,7 +242,7 @@ public class OrderService {
             List<OrderDetailResponse> items = details.stream()
                     .map(d -> new OrderDetailResponse(
                             d.getProduct().getId(),
-                            d.getProduct().getImageUrl(), // giả sử product có trường imageUrl
+                            d.getProduct().getImageUrl(),
                             d.getProduct().getName(),
                             d.getProductPrice(),
                             d.getQuantity()
@@ -254,11 +260,115 @@ public class OrderService {
                     order.getShipCost(),
                     order.getStatus(),
                     order.getPaymentMethod() != null ? order.getPaymentMethod().getId() : null,
+                    order.getCreatedAt(),
+
+                    order.getDoneAt(),
                     items
+
             );
 
             responseList.add(orderResponse);
         }
         return responseList;
     }
+    public UserOrderSummaryResponse getUserOrderSummary(Long userId){
+        long totalOrders = orderRepository.countOrdersByUserId(userId);
+        Integer totalQuantity = orderRepository.sumQuantityByUserId(userId);
+        Long totalAmount = orderRepository.sumTotalPriceByUserId(userId);
+
+        if (totalQuantity == null) totalQuantity = 0;
+        if (totalAmount == null) totalAmount = 0L;
+
+        return new UserOrderSummaryResponse(totalOrders, totalQuantity, totalAmount);
+    }
+    public List<RevenueByMonth> getUserStatsByMonthYear(int month, int year) {
+        List<Object[]> results = orderRepository.getUserPurchaseStats(month, year);
+        List<RevenueByMonth> rvn = new ArrayList<>();
+
+        for (Object[] row : results) {
+            rvn.add(new RevenueByMonth(
+                    ((Number) row[0]).longValue(),
+                    (String) row[1],
+                    ((Number) row[2]).longValue(),
+                    ((Number) row[3]).longValue(),
+                    ((Number) row[4]).doubleValue()
+            ));
+        }
+
+        return rvn;
+    }
+    public List<RevenueByMonth> getUserRevenueLast6Months() {
+        List<Object[]> results = orderRepository.getRevenueLast6Months();
+        List<RevenueByMonth> list = new ArrayList<>();
+
+        for (Object[] row : results) {
+            Long userId = ((Number) row[0]).longValue();
+            String userName = (String) row[1];
+            Long totalOrders = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+            Long totalProducts = row[3] != null ? ((Number) row[3]).longValue() : 0L;
+            Double totalRevenue = row[4] != null ? ((Number) row[4]).doubleValue() : 0.0;
+
+            list.add(new RevenueByMonth(userId, userName, totalOrders, totalProducts, totalRevenue));
+        }
+        return list;
+    }
+    public List<RevenueByMonth> getUserRevenueCurentYear() {
+        List<Object[]> results = orderRepository.getRevenueCurrentYear();
+        List<RevenueByMonth> list = new ArrayList<>();
+
+        for (Object[] row : results) {
+            Long userId = ((Number) row[0]).longValue();
+            String userName = (String) row[1];
+            Long totalOrders = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+            Long totalProducts = row[3] != null ? ((Number) row[3]).longValue() : 0L;
+            Double totalRevenue = row[4] != null ? ((Number) row[4]).doubleValue() : 0.0;
+
+            list.add(new RevenueByMonth(userId, userName, totalOrders, totalProducts, totalRevenue));
+        }
+        return list;
+    }
+    public List<ProductRevenueResponse> getProductRevenueByMonth(int month, int year) {
+        return orderRepository.getProductRevenueByMonth(month, year)
+                .stream().map(row -> new ProductRevenueResponse(
+                        ((Number) row[0]).longValue(),
+                        (String) row[1],
+                        (String) row[2],
+                        ((Number) row[3]).longValue(),
+                        ((Number) row[4]).doubleValue()
+                )).collect(Collectors.toList());
+    }
+
+    public List<ProductRevenueResponse> getProductRevenueLast6Months() {
+        return orderRepository.getProductRevenueLast6Months()
+                .stream().map(row -> new ProductRevenueResponse(
+                        ((Number) row[0]).longValue(),
+                        (String) row[1],
+                        (String) row[2],
+                        ((Number) row[3]).longValue(),
+                        ((Number) row[4]).doubleValue()
+                )).collect(Collectors.toList());
+    }
+
+    public List<ProductRevenueResponse> getProductRevenueCurrentYear() {
+        return orderRepository.getProductRevenueCurrentYear()
+                .stream().map(row -> new ProductRevenueResponse(
+                        ((Number) row[0]).longValue(),
+                        (String) row[1],
+                        (String) row[2],
+                        ((Number) row[3]).longValue(),
+                        ((Number) row[4]).doubleValue()
+                )).collect(Collectors.toList());
+    }
+    public boolean markOrderDone(Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if (optionalOrder.isPresent()) {
+            Order order = optionalOrder.get();
+            order.setStatus("Hoàn thành");
+            order.setDoneAt(LocalDateTime.now());
+            orderRepository.save(order);
+            return true;
+        }
+        return false;
+    }
+
 }

@@ -10,6 +10,7 @@ import com.linsta.linsta_backend.response.UserRegisterResponse;
 import com.linsta.linsta_backend.service.EmailService;
 import com.linsta.linsta_backend.service.RedisService;
 import com.linsta.linsta_backend.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class LoginRegisterController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserRegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody UserRegisterRequest request) {
             return ResponseEntity.ok(userService.register(request));
     }
 

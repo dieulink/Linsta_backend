@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 public class JwtUtil {
 
     private final String SECRET_KEY = "linsta_secret";
-//    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 giờ
 
     public String generateToken(Long id, String name, String email, String role, String address, String phone) {
         Map<String, Object> claims = new HashMap<>();
@@ -43,7 +42,7 @@ public class JwtUtil {
 
     public boolean isTokenValid(String token) {
         try {
-            extractAllClaims(token); // Nếu lỗi sẽ ném exception
+            extractAllClaims(token);
             return true;
         } catch (Exception e) {
             return false;

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -20,5 +21,8 @@ public class OrderResponse {
     private int shipCost;
     private String status;
     private Long payMethodId;
+    private LocalDateTime createdAt;
+    private LocalDateTime doneAt;
     private List<OrderDetailResponse> items;
+
 }

@@ -48,4 +48,8 @@ public class Order {
     @CreationTimestamp
     @Column(name = "created_at",nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "done_at",nullable = true)
+    private LocalDateTime doneAt;
+
 }

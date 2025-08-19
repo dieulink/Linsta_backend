@@ -4,8 +4,11 @@ import com.linsta.linsta_backend.model.Order;
 import com.linsta.linsta_backend.model.User;
 import com.linsta.linsta_backend.repository.OrderRepository;
 import com.linsta.linsta_backend.repository.UserRepository;
+import com.linsta.linsta_backend.request.RevenueByMonth;
 import com.linsta.linsta_backend.response.DailyRevenueDTO;
 import com.linsta.linsta_backend.response.OrderResponse;
+import com.linsta.linsta_backend.response.ProductRevenueResponse;
+import com.linsta.linsta_backend.response.UserOrderSummaryResponse;
 import com.linsta.linsta_backend.service.OrderService;
 import com.linsta.linsta_backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,5 +71,40 @@ public class AdminControler {
         return userRepository.findById(userId)
                 .map(user -> ResponseEntity.ok(user))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+    @GetMapping("/summary/{userId}")
+    public ResponseEntity<UserOrderSummaryResponse> getUserOrderSummary(@PathVariable Long userId) {
+        UserOrderSummaryResponse summary = orderService.getUserOrderSummary(userId);
+        return ResponseEntity.ok(summary);
+    }
+    @GetMapping("/user/revenue_by_month")
+    public ResponseEntity<List<RevenueByMonth>> getUserPurchaseStats(
+            @RequestParam int month,
+            @RequestParam int year) {
+        return ResponseEntity.ok(orderService.getUserStatsByMonthYear(month, year));
+    }
+    @GetMapping("/user/revenue_6_month")
+    public ResponseEntity<List<RevenueByMonth>> getRevenueLast6Months() {
+        return ResponseEntity.ok(orderService.getUserRevenueLast6Months());
+    }
+    @GetMapping("/user/revenue_current_year")
+    public ResponseEntity<List<RevenueByMonth>> getRevenueCurrentYear() {
+        return ResponseEntity.ok(orderService.getUserRevenueCurentYear());
+    }
+    @GetMapping("/product/revenue_by_month")
+    public List<ProductRevenueResponse> getProductRevenueByMonth(
+            @RequestParam int month,
+            @RequestParam int year) {
+        return orderService.getProductRevenueByMonth(month, year);
+    }
+
+    @GetMapping("/product/revenue_6_month")
+    public List<ProductRevenueResponse> getProductRevenueLast6Months() {
+        return orderService.getProductRevenueLast6Months();
+    }
+
+    @GetMapping("/product/revenue_current_year")
+    public List<ProductRevenueResponse> getProductRevenueCurrentYear() {
+        return orderService.getProductRevenueCurrentYear();
     }
 }

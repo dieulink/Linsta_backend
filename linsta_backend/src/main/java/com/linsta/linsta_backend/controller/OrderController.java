@@ -1,10 +1,12 @@
 package com.linsta.linsta_backend.controller;
 
+import com.linsta.linsta_backend.model.Order;
 import com.linsta.linsta_backend.request.OrderRequest;
 import com.linsta.linsta_backend.response.OrderResponse;
 import com.linsta.linsta_backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,4 +40,16 @@ public class OrderController {
         OrderResponse order = orderService.getOrdersByOrderId(orderId);
         return ResponseEntity.ok(order);
     }
+    @PostMapping("/done_order/{id}")
+    public ResponseEntity<String> markOrderAsDone(@PathVariable Long id) {
+        boolean isUpdated = orderService.markOrderDone(id);
+
+        if (isUpdated) {
+            return ResponseEntity.ok("Cập nhật đơn hàng thành công");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Cập nhật đơn hàng thất bại");
+        }
+    }
+
 }

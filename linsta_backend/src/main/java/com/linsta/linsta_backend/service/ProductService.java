@@ -1,12 +1,15 @@
 package com.linsta.linsta_backend.service;
 import com.linsta.linsta_backend.model.Product;
 import com.linsta.linsta_backend.repository.ProductRepository;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service

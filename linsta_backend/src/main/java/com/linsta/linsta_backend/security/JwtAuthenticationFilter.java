@@ -24,12 +24,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Bỏ qua xác thực cho các endpoint không cần token
-        String path = request.getRequestURI();
-        if (path.equals("/login") || path.equals("/register")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+
+//        String path = request.getRequestURI();
+//        if (path.equals("/login") || path.equals("/register")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
